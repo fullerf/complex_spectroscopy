@@ -18,17 +18,27 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 import numpy as np
 import gpflow
-from gpflow.inducing_variables import InducingVariables
-from gpflow.utilities import to_default_float
-from gpflow.base import TensorLike, Parameter
+
 from gpflow import covariances as cov
-from gpflow import kullback_leiblers as kl
 
-from gpflow.conditionals import conditional
-from gpflow.config import default_float
-from gpflow.utilities import positive, triangular
-
-Diag = tf.linalg.LinearOperatorDiag
+from gpflow.utilities.multipledispatch import Dispatcher
 # -
+__all__ = ['TimeDomainKuf', 'FreqDomainKuf', 'KufContext']
+
+TimeDomainKuf = Dispatcher('TimeDomainKuf')
+FreqDomainKuf = Dispatcher('TimeDomainKuf')
+
+
+class KufContext(object):
+    def __init__(self, namespace):
+        self._old_Kuf = cov.Kuf.funcs.copy()
+        self.namespace = namespace
+
+    def __enter__(self):
+        cov.Kuf.funcs = {**self._old_Kuf, **self.namespace.funcs}
+
+    def __exit__(self, *args):
+        cov.Kuf.funcs = {**self._old_Kuf}
+
 
 

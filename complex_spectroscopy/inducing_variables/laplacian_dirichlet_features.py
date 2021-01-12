@@ -14,21 +14,10 @@
 #     name: python3
 # ---
 
-# +
 import tensorflow as tf
-import tensorflow_probability as tfp
 import numpy as np
 import gpflow
 from gpflow.inducing_variables import InducingVariables
-from gpflow.utilities import to_default_float
-from gpflow.base import TensorLike, Parameter
-
-from gpflow.conditionals import conditional
-from gpflow.config import default_float
-from gpflow.utilities import positive, triangular
-
-Diag = tf.linalg.LinearOperatorDiag
-# -
 
 __all__ = ['LaplacianDirichletFeatures']
 
@@ -88,7 +77,6 @@ def all_eigs(E):
     for l in E[1:]:
         lam = tf.tile(lam,[q]) + tf.repeat(l,len(lam))
     return lam
-    
 
 
 # -

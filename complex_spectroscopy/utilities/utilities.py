@@ -19,7 +19,12 @@ import gpflow
 from pathlib import Path
 import tensorflow as tf
 
-__all__ = ['model_to_h5', 'h5_to_model', 'make_batch_iter', 'setup_logger']
+__all__ = ['cartesian_prod', 'model_to_h5', 'h5_to_model', 'make_batch_iter', 'setup_logger']
+
+
+def cartesian_prod(*args):
+    D = len(args)
+    return tf.reshape(tf.stack(tf.meshgrid(*args, indexing='ij'),-1),(-1,D))
 
 
 # +
