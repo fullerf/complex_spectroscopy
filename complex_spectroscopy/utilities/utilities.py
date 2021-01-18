@@ -19,7 +19,52 @@ import gpflow
 from pathlib import Path
 import tensorflow as tf
 
-__all__ = ['cartesian_prod', 'model_to_h5', 'h5_to_model', 'make_batch_iter', 'setup_logger']
+__all__ = ['KufContext',
+           'merge_dispatchers',
+           'cartesian_prod',
+           'model_to_h5',
+           'h5_to_model',
+           'make_batch_iter',
+           'setup_logger']
+
+class KufContext(object):
+    def __init__(self, namespace):
+        self._old_Kuf = cov.Kuf.funcs.copy()
+        self.namespace = namespace
+
+    def __enter__(self):
+        cov.Kuf.funcs = {**self._old_Kuf, **self.namespace.funcs}
+        cov.Kuf._cache.clear()
+
+        try:
+            del cov.Kuf._ordering
+        except AttributeError:
+            pass
+
+        cov.Kuf.reorder()
+
+    def __exit__(self, *args):
+        cov.Kuf.funcs = {**self._old_Kuf}
+        cov.Kuf._cache.clear()
+
+        try:
+            del cov.Kuf._ordering
+        except AttributeError:
+            pass
+
+        cov.Kuf.reorder()
+
+def merge_dispatchers(dispatcher_1, dispatcher_2):
+    dispatcher_1.funcs = {**dispatcher_1.funcs, **dispatcher_2.funcs}
+    dispatcher_1._cache.clear()
+
+    try:
+        del dispatcher_1._ordering
+    except AttributeError:
+        pass
+
+    dispatcher_1.reorder()
+    return dispatcher_1
 
 
 def cartesian_prod(*args):

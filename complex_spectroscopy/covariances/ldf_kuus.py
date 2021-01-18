@@ -21,8 +21,9 @@ from gpflow.inducing_variables import InducingVariables
 from ..inducing_variables import LaplacianDirichletFeatures
 from ..kernels import *
 from gpflow import covariances as cov
+Diag = tf.linalg.LinearOperatorDiag
 
-
+__all__ = []
 # +
 @cov.Kuu.register(LaplacianDirichletFeatures, gpflow.kernels.Matern12)
 def Kuu_matern12_ldf(inducing_variable, kernel, jitter=None):
@@ -35,7 +36,7 @@ def Kuu_matern12_ldf(inducing_variable, kernel, jitter=None):
     S = MaternSpectralDensityND(eigen_frequencies,
                                 tf.constant(0.5, dtype=gpflow.default_float()),
                                 d, kernel.lengthscales) 
-    S = 1/S + gpflow.config.default_jitter()
+    S = 1/(kernel.variance*tf.clip_by_value(S,gpflow.config.default_jitter(),1E6))
     return Diag(S, is_self_adjoint=True, is_positive_definite=True)
 
 @cov.Kuu.register(LaplacianDirichletFeatures,gpflow.kernels.Matern32)
@@ -49,7 +50,7 @@ def Kuu_matern32_ldf(inducing_variable, kernel, jitter=None):
     S = MaternSpectralDensityND(eigen_frequencies,
                                 tf.constant(3/2, dtype=gpflow.default_float()),
                                 d, kernel.lengthscales)
-    S = 1/S + gpflow.config.default_jitter()
+    S = 1/(kernel.variance*tf.clip_by_value(S,gpflow.config.default_jitter(),1E6))
     return Diag(S, is_self_adjoint=True, is_positive_definite=True)
 
 @cov.Kuu.register(LaplacianDirichletFeatures, gpflow.kernels.Matern52)
@@ -63,7 +64,7 @@ def Kuu_matern52_ldf(inducing_variable, kernel, jitter=None):
     S = MaternSpectralDensityND(eigen_frequencies,
                                 tf.constant(5/2, dtype=gpflow.default_float()),
                                 d, kernel.lengthscales)
-    S = 1/S + gpflow.config.default_jitter()
+    S = 1/(kernel.variance*tf.clip_by_value(S,gpflow.config.default_jitter(),1E6))
     return Diag(S, is_self_adjoint=True, is_positive_definite=True)
 
 @cov.Kuu.register(LaplacianDirichletFeatures, SeparableMatern12)
@@ -77,7 +78,7 @@ def Kuu_sep_matern12_ldf(inducing_variable, kernel, jitter=None):
     S = SeparableMaternSpectralDensityND(eigen_frequencies,
                                 tf.constant(0.5, dtype=gpflow.default_float()),
                                 d, kernel.lengthscales)
-    S = 1/S + gpflow.config.default_jitter()
+    S = 1/(kernel.variance*tf.clip_by_value(S,gpflow.config.default_jitter(),1E6))
     return Diag(S, is_self_adjoint=True, is_positive_definite=True)
 
 @cov.Kuu.register(LaplacianDirichletFeatures, SeparableMatern32)
@@ -91,7 +92,7 @@ def Kuu_sep_matern32_ldf(inducing_variable, kernel, jitter=None):
     S = MSeparableMaternSpectralDensityND(eigen_frequencies,
                                 tf.constant(3/2, dtype=gpflow.default_float()),
                                 d, kernel.lengthscales)
-    S = 1/S + gpflow.config.default_jitter()
+    S = 1/(kernel.variance*tf.clip_by_value(S,gpflow.config.default_jitter(),1E6))
     return Diag(S, is_self_adjoint=True, is_positive_definite=True)
 
 @cov.Kuu.register(LaplacianDirichletFeatures, SeparableMatern52)
@@ -105,7 +106,7 @@ def Kuu_sep_matern52_ldf(inducing_variable, kernel, jitter=None):
     S = SeparableMaternSpectralDensityND(eigen_frequencies,
                                 tf.constant(5/2, dtype=gpflow.default_float()),
                                 d, kernel.lengthscales)
-    S = 1/S + gpflow.config.default_jitter()
+    S = 1/(kernel.variance*tf.clip_by_value(S,gpflow.config.default_jitter(),1E6))
     return Diag(S, is_self_adjoint=True, is_positive_definite=True)
 
 @cov.Kuu.register(LaplacianDirichletFeatures, gpflow.kernels.RBF)
@@ -117,7 +118,7 @@ def Kuu_rbf_ldf(inducing_variable, kernel, jitter=None):
     inds, ω0, d = (lambda u: (u.inds, u.ω0, u.d))(inducing_variable)
     eigen_frequencies = tf.cast(inds+1, gpflow.default_float()) * ω0[None,:]
     S = RBFSpectralDensityND(eigen_frequencies, kernel.lengthscales)
-    S = 1/S + gpflow.config.default_jitter()
+    S = 1/(kernel.variance*tf.clip_by_value(S,gpflow.config.default_jitter(),1E6))
     return Diag(S, is_self_adjoint=True, is_positive_definite=True)
 # -
 

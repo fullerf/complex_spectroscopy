@@ -26,3 +26,7 @@ __pycache__
 
 # ignore build related components
 *.egg-info
+
+*.ipynb
+
+notebooks/
