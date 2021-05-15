@@ -108,20 +108,25 @@ class LaplacianDirichletFeatures(InducingVariables):
     
     """
     def __init__(self, d: int, m: int, R = None, L = None, 
-                 freq_strategy='bottom_k_squares',
+                 freq_max = None, freq_strategy='bottom_k_squares',
                  start_ind=0):
         assert int(d) > 0
         self._d = int(d)
         assert int(m) > 0
         self._m = int(m)
-        if int(m) <= 1000:
-            N = int(m)
-        else:
-            N = int(max(np.sqrt(m),1000))
+        N = int(m)
+        # if int(m) <= 1000:
+        #     N = int(m)
+        # else:
+        #     N = int(max(np.sqrt(m),1000))
         self.N = N
         if L is None:
-            L = self.d*[1.]
+            if freq_max is not None:
+                L = tf.constant(self.d*[(1/float(freq_max))*float(m)*np.pi/2], dtype=gpflow.default_float())
+            else:
+                L = tf.constant(self.d*[1.], dtype=gpflow.default_float())
         else:
+            L = tf.reshape(tf.constant(L, dtype=gpflow.default_float()),(-1))
             assert len(L) == self.d
         start_ind = int(start_ind)
         assert start_ind >= 0

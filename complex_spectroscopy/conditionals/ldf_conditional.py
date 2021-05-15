@@ -48,7 +48,6 @@ def approx_conditional_ldf(
 
     # num_data = tf.shape(Xnew)[0]  # M
     num_func = tf.shape(f)[1]  # K
-    tpose = tf.linalg.matrix_transpose  # because god damn, that's super long
 
     Λ = cov.Kuu(inducing_variable, kernel)  # this is now a LinearOperator
     Φ = cov.Kuf(inducing_variable, kernel, Xnew)  # still a Tensor
@@ -57,7 +56,7 @@ def approx_conditional_ldf(
 
     # compute the covariance due to the conditioning
     if full_cov:
-        fvar = tpose(Φr) @ Λr.solve(Φr)
+        fvar = tf.matmul(Φr, Λr.solve(Φr), transpose_a=True)
         shape = (num_func, 1, 1)
     else:
         fvar = tf.reduce_sum(Φr * Λr.solve(Φr), -2)
@@ -78,9 +77,9 @@ def approx_conditional_ldf(
     if q_sqrt is not None:
         if q_sqrt.shape.ndims == 2:
             # case for q_diag = True
-            LTA = Diag(tf.transpose(q_sqrt)) @ A  # K x M x N
+            LTA = Diag(q_sqrt) @ A  # K x M x N
         elif q_sqrt.shape.ndims == 3:
-            LTA = tpose(q_sqrt) @ A
+            LTA = tf.matmul(q_sqrt, A, transpose_a=True)
         else:
             raise ValueError("Bad dimension for q_sqrt: %s" % str(q_sqrt.get_shape().ndims))
         if full_cov:
